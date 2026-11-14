@@ -1,0 +1,11 @@
+﻿import fs from 'node:fs';
+import {lookup} from '../lib/lexicon.ts';
+const source=fs.readFileSync('app/page.tsx','utf8');
+const instructions=Array.from(source.matchAll(/\bit="([^"]+)"/g),m=>m[1]);
+const content=`Mi presento. Comunicare in classe. In classe. L’insegnante. Lo studente. La studentessa. Buongiorno! Mi chiamo Silvia. Sono italiana, di Roma. Sono la vostra insegnante. Mi chiamo Joey. Sono australiano, di Sydney. Sono studente. Studio Economia. Mi chiamo Norma. Sono spagnola, di Madrid. Lavoro. Faccio la fotografa. Come ti chiami? Di dove sei? Che cosa fai? italiano francese portoghese spagnolo la mia lingua. studente insegnante ascoltare leggere parlare scrivere guardare. Come si dice I like? Come si scrive Ciao? Che cosa significa lavagna? Che cos’è la lavagna? Leggi a pagina 17! Hai capito? C, i, a, o. Scusi, non ho capito. Sì, ho capito. Blackboard. Mi piace. Studente Come si dice? Si dice GELATO COMPUTER. Come si dice ordinateur? Come si dice ice-cream?`;
+const words=new Set([...instructions,content].join(' ').match(/\p{L}+/gu));
+const missing=[...words].filter(w=>!lookup(w));
+if(missing.length){console.error('Manjkajoči prevodi:',missing.join(', '));process.exitCode=1}else console.log(`Slovar pokriva ${words.size} oblik v navodilih in učnem besedilu obeh strani.`);
+const ids=[...source.matchAll(/<Instruction id="([^"]+)"/g)].map(m=>m[1]);
+if(ids.join(',')!=='1a,1b,1c,1,2a,2b')throw Error('Številčenje ne ustreza preverjenemu izvirniku.');
+console.log('Številčenje: tiskana 9 = 1a, 1b, 1c; tiskana 10 = 1, 2a, 2b.');
