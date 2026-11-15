@@ -112,3 +112,8 @@ Ta dokument je skupni dogovor za celotno aplikacijo. Ob začetku dela ga preberi
 - Uvoz demo odgovorov je izrecno dejanje prijavljenega uporabnika. Izvede se z ohranitvijo že obstoječih vrstic v Supabase. Stari lokalni podatki se ohranijo. Po uspešnem uvozu se v tem brskalniku označi lastnik uvoza, da se isti demo podatki ne ponujajo drugim računom.
 - Gradivo ostaja v datotekah projekta. Izvirniki v public/material ostanejo statične datoteke; prijava in RLS varujeta uporabniške odgovore. Dodatna zaščita neposrednega dostopa do gradiva trenutno ni vgrajena.
 - Preverjanje shranjevanja vključuje hitre zaporedne spremembe, vnos med nalaganjem, prekinjeno povezavo, obnovo čakajočih zapisov in ločitev računov. Ukaz je node --experimental-transform-types --test scripts/answer-store.test.mjs.
+
+### Oznake – popravek in barve (2026-11-15)
+
+- Potrjeno: gumb »Dodaj oznako« mora delovati, barvna paleta oznak je razširjena.
+- Izvedba: na voljo je 18 barv v prilagodljivi mreži. Dodajanje podpira tudi Enter v polju imena. Nova ali ponovno uporabljena oznaka se izbere in pokaže potrditev. Dodelitev elementom potrdi gumb »Shrani«. Identifikatorji oznak in map se ustvarijo tudi pri dostopu prek HTTP brez podpore za `crypto.randomUUID`.

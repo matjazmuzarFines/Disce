@@ -10,7 +10,16 @@ const initial: LibraryData = { items: [
   { id: 'volentieri', name: 'Volentieri! A1', kind: 'book', parent: null, labels: [] },
   { id: 'worksheet', name: 'Delovni list 1', kind: 'book', parent: null, labels: [] },
 ], labels: [] };
-const colors = ['#82a8fa', '#be9cff', '#ed9bc7', '#efa987', '#dfc377', '#9aa6ba'];
+const colors = [
+  '#82a8fa', '#5c86e8', '#93c5fd', '#7dd3fc', '#67d4df', '#a5e2e8',
+  '#be9cff', '#a78bfa', '#d8b4fe', '#ed9bc7', '#f472b6', '#fda4af',
+  '#efa987', '#fb923c', '#f4b183', '#dfc377', '#fde68a', '#9aa6ba',
+];
+
+function createLibraryId() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
+}
 export function Library({ onOpen, userId }: { onOpen: (id: string) => void; userId: string }) {
   const storageKey = `disce-library-v1:${userId}`;
   const [data, setData] = useState<LibraryData>(initial);
@@ -26,6 +35,7 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
   const [chosenLabels, setChosenLabels] = useState<string[]>([]);
   const [destination, setDestination] = useState('');
   const [error, setError] = useState('');
+  const [labelStatus, setLabelStatus] = useState('');
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     try {
@@ -53,7 +63,7 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
   const toggle = (id: string) => setSelected(value => value.includes(id) ? value.filter(key => key !== id) : [...value, id]);
   const navigate = (id: string | null) => { setFolder(id); setSelected([]); setQuery(''); setFilter(''); };
   const open = (mode: typeof dialog) => {
-    setError(''); setTitle(mode === 'rename' ? single?.name || '' : '');
+    setError(''); setLabelStatus(''); setTitle(mode === 'rename' ? single?.name || '' : '');
     setLabelName(''); setChosenLabels(single?.labels || []); setDestination(''); setDialog(mode);
   };
   const descendants = (ids: string[]) => {
@@ -69,7 +79,7 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     if ((dialog === 'create' || dialog === 'rename') && !title.trim()) { setError('Vnesi ime.'); return; }
-    if (dialog === 'create') setData(value => ({ ...value, items: [...value.items, { id: crypto.randomUUID(), name: title.trim(), kind: 'folder', parent: folder, labels: chosenLabels }] }));
+    if (dialog === 'create') setData(value => ({ ...value, items: [...value.items, { id: createLibraryId(), name: title.trim(), kind: 'folder', parent: folder, labels: chosenLabels }] }));
     if (dialog === 'rename' && single) setData(value => ({ ...value, items: value.items.map(item => item.id === single.id ? { ...item, name: title.trim() } : item) }));
     if (dialog === 'labels') setData(value => ({ ...value, items: value.items.map(item => selected.includes(item.id) ? { ...item, labels: chosenLabels } : item) }));
     if (dialog === 'delete') { setData(value => ({ ...value, items: value.items.filter(item => !excluded.has(item.id)) })); setSelected([]); }
@@ -77,12 +87,14 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
     setDialog(null);
   };
   const addLabel = () => {
+    setLabelStatus('');
     const name = labelName.trim();
     if (!name || Array.from(name).length > 8) { setError('Oznaka naj vsebuje od 1 do 8 znakov.'); return; }
     const existing = data.labels.find(label => label.name.toLocaleLowerCase('sl') === name.toLocaleLowerCase('sl'));
-    const id = existing?.id || crypto.randomUUID();
+    const id = existing?.id || createLibraryId();
     if (!existing) setData(value => ({ ...value, labels: [...value.labels, { id, name, color }] }));
     setChosenLabels(value => value.includes(id) ? value : [...value, id]); setLabelName(''); setError('');
+    setLabelStatus(`Oznaka »${existing?.name || name}« je izbrana. Potrdi s Shrani.`);
   };
   return <main className="library library-manager">
     <h1>Moji učbeniki</h1>
@@ -98,12 +110,12 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
     </aside><div className="library-grid">{visible.map(item => <article className={'library-card ' + (selected.includes(item.id) ? 'is-selected' : '')} key={item.id}>
       <input className="card-checkbox" type="checkbox" aria-label={`Izberi ${item.name}`} checked={selected.includes(item.id)} onChange={() => toggle(item.id)}/>
       <button className="card-open" onClick={() => item.kind === 'folder' ? navigate(item.id) : onOpen(item.id)}><span className={'library-cover ' + item.kind}>{item.kind === 'folder' ? <Folder size={38}/> : <BookOpen size={35}/>}</span><h2>{item.name}</h2><p>{item.kind === 'folder' ? `${data.items.filter(child => child.parent === item.id).length} elementov` : item.id === 'worksheet' ? 'Il presente indicativo · 7 strani' : 'Italijanščina · A1'}</p></button>
-      <div className="card-labels">{item.labels.map(id => { const label = data.labels.find(value => value.id === id); return label && <span key={id} className="color-label" style={{ color: label.color, borderColor: label.color + '66', background: label.color + '15' }}>{label.name}</span>; })}<button className="add-label" aria-label={`Uredi oznake za ${item.name}`} onClick={() => { setSelected([item.id]); setChosenLabels(item.labels); setLabelName(''); setError(''); setDialog('labels'); }}><Tag size={13}/> Oznaka</button></div>
+      <div className="card-labels">{item.labels.map(id => { const label = data.labels.find(value => value.id === id); return label && <span key={id} className="color-label" style={{ color: label.color, borderColor: label.color + '66', background: label.color + '15' }}>{label.name}</span>; })}<button className="add-label" aria-label={`Uredi oznake za ${item.name}`} onClick={() => { setSelected([item.id]); setChosenLabels(item.labels); setLabelName(''); setError(''); setLabelStatus(''); setDialog('labels'); }}><Tag size={13}/> Oznaka</button></div>
     </article>)}{!visible.length && <p className="library-empty">{query || filter ? 'Ni zadetkov za izbrane filtre.' : 'Mapa je prazna.'}</p>}</div></div>
     <dialog ref={dialogRef} className="library-dialog" onCancel={() => setDialog(null)} onClick={event => { if (event.target === event.currentTarget) setDialog(null); }}><form onSubmit={save}><div className="dialog-heading"><h2>{dialog === 'create' ? 'Nova mapa' : dialog === 'rename' ? 'Preimenuj' : dialog === 'labels' ? 'Oznake' : dialog === 'move' ? 'Premakni v mapo' : 'Izbriši izbor'}</h2><button type="button" aria-label="Zapri" onClick={() => setDialog(null)}><X size={19}/></button></div>
       {(dialog === 'create' || dialog === 'rename') && <label>Ime<input autoFocus maxLength={120} value={title} onChange={event => setTitle(event.target.value)}/></label>}
       {dialog === 'move' && <label>Ciljna mapa<select value={destination} onChange={event => setDestination(event.target.value)}><option value="">Vsi učbeniki</option>{data.items.filter(item => item.kind === 'folder' && !excluded.has(item.id)).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
-      {(dialog === 'create' || dialog === 'labels') && <fieldset><legend>Oznake</legend><div className="label-options">{data.labels.map(label => <label key={label.id} className="color-label" style={{ color: label.color }}><input type="checkbox" checked={chosenLabels.includes(label.id)} onChange={() => setChosenLabels(value => value.includes(label.id) ? value.filter(id => id !== label.id) : [...value, label.id])}/>{label.name}</label>)}</div><label>Nova oznaka · največ 8 znakov<input value={labelName} maxLength={8} onChange={event => setLabelName(event.target.value)}/></label><div className="label-colors">{colors.map(value => <button type="button" key={value} aria-label={`Barva ${value}`} aria-pressed={color === value} style={{ background: value }} onClick={() => setColor(value)}/>)}<button className="label-create" type="button" onClick={addLabel}>Dodaj oznako</button></div>{dialog === 'labels' && selection.length > 1 && <p className="muted">Izbrane oznake bodo veljale za vse izbrane elemente.</p>}</fieldset>}
+      {(dialog === 'create' || dialog === 'labels') && <fieldset><legend>Oznake</legend><div className="label-options">{data.labels.map(label => <label key={label.id} className="color-label" style={{ color: label.color }}><input type="checkbox" checked={chosenLabels.includes(label.id)} onChange={() => setChosenLabels(value => value.includes(label.id) ? value.filter(id => id !== label.id) : [...value, label.id])}/>{label.name}</label>)}</div><label>Nova oznaka · največ 8 znakov<input value={labelName} maxLength={8} onChange={event => setLabelName(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); addLabel(); } }}/></label><div className="label-colors">{colors.map(value => <button type="button" key={value} aria-label={`Barva ${value}`} aria-pressed={color === value} style={{ background: value }} onClick={() => setColor(value)}/>)}</div><button className="label-create" type="button" onClick={addLabel}>Dodaj oznako</button><p className="label-status" role="status">{labelStatus}</p>{dialog === 'labels' && selection.length > 1 && <p className="muted">Izbrane oznake bodo veljale za vse izbrane elemente.</p>}</fieldset>}
       {dialog === 'delete' && <p>Izbrišem {selected.length} izbranih elementov? Izbris mape odstrani tudi njeno vsebino iz knjižnice.</p>}
       {error && <p role="alert" className="incorrect">{error}</p>}<div className="dialog-actions"><button type="button" onClick={() => setDialog(null)}>Prekliči</button><button className="primary" type="submit">{dialog === 'delete' ? 'Izbriši' : 'Shrani'}</button></div>
     </form></dialog>
