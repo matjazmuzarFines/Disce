@@ -11,9 +11,8 @@ const initial: LibraryData = { items: [
   { id: 'worksheet', name: 'Delovni list 1', kind: 'book', parent: null, labels: [] },
 ], labels: [] };
 const colors = ['#82a8fa', '#be9cff', '#ed9bc7', '#efa987', '#dfc377', '#9aa6ba'];
-const storageKey = 'disce-library-v1';
-
-export function Library({ onOpen }: { onOpen: (id: string) => void }) {
+export function Library({ onOpen, userId }: { onOpen: (id: string) => void; userId: string }) {
+  const storageKey = `disce-library-v1:${userId}`;
   const [data, setData] = useState<LibraryData>(initial);
   const [loaded, setLoaded] = useState(false);
   const [folder, setFolder] = useState<string | null>(null);
@@ -30,12 +29,18 @@ export function Library({ onOpen }: { onOpen: (id: string) => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+      let stored = localStorage.getItem(storageKey);
+      const owner = localStorage.getItem('disce-legacy-library-owner');
+      if (!stored && (!owner || owner === userId)) {
+        stored = localStorage.getItem('disce-library-v1');
+        if (stored) localStorage.setItem('disce-legacy-library-owner', userId);
+      }
+      const saved = JSON.parse(stored || 'null');
       if (saved && Array.isArray(saved.items) && Array.isArray(saved.labels)) setData(saved);
     } catch {}
     setLoaded(true);
-  }, []);
-  useEffect(() => { if (loaded) localStorage.setItem(storageKey, JSON.stringify(data)); }, [data, loaded]);
+  }, [storageKey, userId]);
+  useEffect(() => { if (loaded) localStorage.setItem(storageKey, JSON.stringify(data)); }, [data, loaded, storageKey]);
   useEffect(() => {
     if (dialog) dialogRef.current?.showModal();
     else dialogRef.current?.close();

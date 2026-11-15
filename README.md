@@ -1,4 +1,4 @@
-﻿# Disce – interaktivni učbeniki
+# Disce – interaktivni učbeniki
 
 Lokalni prototip aplikacije za učenje italijanščine v slovenščini.
 
@@ -15,16 +15,16 @@ Odpri http://localhost:3000. `npm.cmd` deluje tudi pri privzeti omejitvi PowerSh
 
 ## Obseg
 
-- Demo vstop z imenom, minimalistična temna izbira učbenika, enota 0.
+- Prijava z e-pošto in geslom Supabase uporabnika, temna knjižnica učbenikov in delovnega lista.
 - Projektni dogovori in predlogi za potrditev: `PROJECT_RULES.md` (povezano iz `AGENTS.md`).
 - Klik na besede v učnem besedilu: lokalni slovar, slovenske razlage, spreganje in oblike pridevnikov.
 - Na laptopu je izraz v desnem modulu, na manjšem zaslonu v spodnjem oknu.
 - Zaporedni strani PDF-ja 11–12 = tiskani strani 9–10.
 - Strukturirane naloge, izvirni slikovni izrezi, prevodi navodil in izbrane slovnične razlage.
-- Odgovori se sproti shranjujejo v localStorage tega brskalnika. Odjava jih ne izbriše.
+- Odgovori se sproti shranjujejo v Supabase; čakajoče spremembe imajo lokalni varnostni zapis po uporabniku. Stare demo odgovore je mogoče uvoziti po prijavi.
 - Preverjanje vaje s slikami in povezovanja 2a; prosti prevodi in predstavitve se ne ocenjujejo.
-- Prijava je demonstracijska, brez preverjanja identitete. Ni sinhronizacije ali zvočnih posnetkov.
-- Gradivo ostaja lokalno. Pred gostovanjem urediti pravo prijavo in zaščito gradiva.
+- Prijava uporablja Supabase Auth. Zvočni posnetki še niso dodani.
+- Gradivo je v datotekah projekta. Navodila za konfiguracijo, Supabase SQL in Vercel so v docs/SUPABASE_VERCEL.md. Za zagon sta potrebni NEXT_PUBLIC_SUPABASE_URL in NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY v .env.local.
 
 ## Izvor slik
 

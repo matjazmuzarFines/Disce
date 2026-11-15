@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ChevronRight, Eye, Languages, X } from 'lucide-react';
 import { WordPanel } from './study-text';
 import { Instruction, TranslatedText, WorksheetText as W } from './lesson-content';
+import { useAnswers } from './answer-provider';
 import * as content from '../lib/worksheet';
 import type { Bilingual } from '../lib/worksheet';
 
@@ -50,11 +51,7 @@ function OriginalPage({ page, onClose }: { page: number; onClose: () => void }) 
 export function Worksheet({ onBack }: { onBack: () => void }) {
   const [page, setPage] = useState(1);
   const [original, setOriginal] = useState(false);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => { try { setAnswers(JSON.parse(localStorage.getItem('disce-worksheet-answers') || '{}')); } catch {} setLoaded(true); }, []);
-  useEffect(() => { if (loaded) localStorage.setItem('disce-worksheet-answers', JSON.stringify(answers)); }, [answers, loaded]);
-  const put = (id: string, value: string) => setAnswers(previous => ({ ...previous, [id]: value }));
+  const { answers, put } = useAnswers('worksheet');
   const fields = { answers, put };
   const go = (next: number) => { setPage(next); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   return <><div className="lesson-bar"><button onClick={onBack}><ArrowLeft size={16}/> Učbeniki</button><span>Delovni list 1 <ChevronRight size={14}/><b>6 · Il presente indicativo</b></span></div><div className="workspace worksheet-workspace"><aside className="sidebar worksheet-sidebar"><span className="eyebrow">DELOVNI LIST 1</span><div className="unit"><span>6</span><div><b>Il presente indicativo</b><small>Povedni sedanjik</small></div></div>{content.worksheetPages.map((label, index) => <button key={label} className={page === index + 1 ? 'selected' : ''} aria-current={page === index + 1 ? 'page' : undefined} onClick={() => go(index + 1)}><div>{label}<small>Tiskana str. {index + 38} · PDF {index + 1}</small></div>{page === index + 1 && <ChevronRight size={16}/>}</button>)}</aside><main className="lesson worksheet-lesson"><div className="lesson-heading"><div><span className="eyebrow">POGLAVJE 6 / {content.worksheetPages[page - 1].toUpperCase()}</span><h1><W value={content.worksheetTitle.it}/></h1></div><span className="page-number">{page + 37}<small>TISKANA STRAN</small></span></div><div className="source-row"><span>PDF: zaporedna stran {page} · tiskana stran {page + 37}</span><button onClick={() => setOriginal(true)}><Eye size={15}/> Poglej izvirnik</button></div><div key={page}>

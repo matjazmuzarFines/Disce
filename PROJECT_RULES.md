@@ -46,8 +46,8 @@ Ta dokument je skupni dogovor za celotno aplikacijo. Ob začetku dela ga preberi
 
 - Volentieri! A1: PDF 11 = tiskana 9 (1a, 1b, 1c); PDF 12 = tiskana 10 (1, 2a, 2b).
 - Ločuj številko naloge, številko postavke in oznako zvočnega posnetka.
-- Prijava je demo, brez gesla; ne prikazuj je kot pravo avtentikacijo.
-- Obstoječe odgovore ohrani pri oblikovnih spremembah. Za zdaj se hranijo v localStorage tega brskalnika; niso sinhronizirani in niso vezani na uporabniški račun.
+- Prijava uporablja Supabase Auth z e-pošto in geslom obstoječega uporabnika. Seje se hranijo v piškotkih in osvežujejo prek Next.js proxy.ts. V aplikaciji ni nove registracije.
+- Obstoječe odgovore ohrani pri oblikovnih spremembah. Odgovori se shranjujejo v Supabase public.user_answers po uporabniku, učbeniku in polju. Čakajoče spremembe imajo lokalni varnostni zapis, ločen po user_id.
 - Ne dodajaj novih učbenikov ali izmišljenega napredka kot vizualnega polnila.
 
 ## Potrjevanje in zgodovina
@@ -62,7 +62,7 @@ Ta dokument je skupni dogovor za celotno aplikacijo. Ob začetku dela ga preberi
 - Create odpre pogovorno okno za ime mape in njene oznake. Izbrane učbenike in mape je mogoče premakniti v drugo mapo; premik mape vase ali v njene podmape je onemogočen.
 - Pod naslovom sta besedilni filter po imenih in izbira oznake. Filtra veljata za trenutno mapo.
 - Barvne oznake vsebujejo največ 8 znakov. Seznam se dopolnjuje ob dodajanju, obstoječe oznake je mogoče ponovno uporabiti. Oznake je mogoče dodati tudi obstoječim učbenikom in mapam.
-- Organizacija knjižnice in oznake se hranijo v localStorage tega brskalnika. Demo prijava nima ločenih uporabniških računov.
+- Organizacija knjižnice in oznake se hranijo v localStorage tega brskalnika, ločeno po prijavljenem user_id. Prejšnja demo knjižnica se lokalno prenese prvemu prijavljenemu uporabniku in se ohrani tudi v starem ključu.
 - Izbris zahteva potrditev. Izbris mape odstrani tudi elemente v njej iz knjižnice; izvorne datoteke in shranjeni učni odgovori se ohranijo.
 - Delovni list 1, Il presente indicativo, obsega PDF strani 1–7 oziroma tiskane strani 38–44. Vseh sedem strani je prepisanih v komponente aplikacije, z razlagami 6.1–6.6 in nalogami 1–10. Dopisane rešitve se prezrejo. Izvirne strani so dostopne prek gumba Poglej izvirnik.
 
@@ -101,5 +101,14 @@ Ta dokument je skupni dogovor za celotno aplikacijo. Ob začetku dela ga preberi
 
 - Potrjeno: prevod in manjši izvirnik sta tesno skupaj, z 2 px razmika. To velja za navodila in prevedene odstavke.
 - Potrjeno: gradivo za izbrane učbenike ostaja v datotekah projekta. Uporabniška prijava se poveže s Supabase uporabniki. Uporabnik želi tudi shranjevanje odgovorov v tabelah Supabase.
-- Trenutno stanje: demo vstop in localStorage še delujeta. Pripravljena sta SQL za public.user_answers in postopek v docs/SUPABASE_VERCEL.md; povezava aplikacije s storitvami še ni vgrajena in SQL še ni izveden v projektu Supabase.
-- Predlog izvedbe: prijava z e-pošto in geslom za obstoječe Supabase uporabnike, ena vrstica odgovora na uporabnika, učbenik in stabilni identifikator polja ter RLS za lastne odgovore. Mape in oznake za zdaj ostanejo lokalne. Ob povezavi se pripravi varen uvoz dosedanjih lokalnih odgovorov v uporabnikov račun.
+- Trenutno stanje: vgrajeni so prava prijava, odjava in nalaganje ter shranjevanje odgovorov v Supabase. Uporabnik je potrdil izvedbo SQL in dodal uporabnika ter konfiguracijo. Povezava z Auth in zavrnitev anonimnega dostopa do tabele sta preverjeni. Prijavo z dejanskim geslom mora preveriti uporabnik.
+- Izvedba: prijava z e-pošto in geslom obstoječih uporabnikov, ena vrstica odgovora na uporabnika, učbenik in stabilni identifikator polja ter RLS za lastne odgovore. Mape in oznake ostanejo lokalne po uporabniku. Gumb Uvozi v moj račun prenese stare lokalne odgovore; že obstoječi Supabase odgovori se ohranijo.
+
+### Prijava in zanesljivost odgovorov (2026-11-15)
+
+- Vsako spremenjeno polje se po kratkem zamiku samodejno shrani. Zaporedni zapisi istega polja se obdelujejo po vrsti in ohranijo zadnji vnos. Prazna vrednost se shrani kot izbris vsebine odgovora.
+- Vmesnik kaže nalaganje, shranjevanje, čakajoče spremembe ali napako z gumbom za ponovni poskus. Ob povrnitvi povezave se shranjevanje ponovno poskusi.
+- Lokalni varnostni zapis in čakajoče spremembe so vezani na user_id. Po odjavi se stanje prejšnjega uporabnika odstrani iz aplikacije. Njegovi čakajoči zapisi ostanejo za naslednjo prijavo istega uporabnika.
+- Uvoz demo odgovorov je izrecno dejanje prijavljenega uporabnika. Izvede se z ohranitvijo že obstoječih vrstic v Supabase. Stari lokalni podatki se ohranijo. Po uspešnem uvozu se v tem brskalniku označi lastnik uvoza, da se isti demo podatki ne ponujajo drugim računom.
+- Gradivo ostaja v datotekah projekta. Izvirniki v public/material ostanejo statične datoteke; prijava in RLS varujeta uporabniške odgovore. Dodatna zaščita neposrednega dostopa do gradiva trenutno ni vgrajena.
+- Preverjanje shranjevanja vključuje hitre zaporedne spremembe, vnos med nalaganjem, prekinjeno povezavo, obnovo čakajočih zapisov in ločitev računov. Ukaz je node --experimental-transform-types --test scripts/answer-store.test.mjs.

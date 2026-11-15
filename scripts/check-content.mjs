@@ -2,7 +2,7 @@
 import {registerHooks} from 'node:module';
 registerHooks({resolve(specifier,context,nextResolve){return nextResolve(specifier==='./worksheet-lexicon'?specifier+'.ts':specifier,context);}});
 const {lookup,lookupInContext}=await import('../lib/lexicon.ts');
-const source=fs.readFileSync('app/page.tsx','utf8');
+const source=fs.readFileSync('components/textbook-app.tsx','utf8');
 const instructions=Array.from(source.matchAll(/\bit="([^"]+)"/g),m=>m[1]);
 const content=`Mi presento. Comunicare in classe. In classe. L’insegnante. Lo studente. La studentessa. Buongiorno! Mi chiamo Silvia. Sono italiana, di Roma. Sono la vostra insegnante. Mi chiamo Joey. Sono australiano, di Sydney. Sono studente. Studio Economia. Mi chiamo Norma. Sono spagnola, di Madrid. Lavoro. Faccio la fotografa. Come ti chiami? Di dove sei? Che cosa fai? italiano francese portoghese spagnolo la mia lingua. studente insegnante ascoltare leggere parlare scrivere guardare. Come si dice I like? Come si scrive Ciao? Che cosa significa lavagna? Che cos’è la lavagna? Leggi a pagina 17! Hai capito? C, i, a, o. Scusi, non ho capito. Sì, ho capito. Blackboard. Mi piace. Studente Come si dice? Si dice GELATO COMPUTER. Come si dice ordinateur? Come si dice ice-cream?`;
 const words=new Set([...instructions,content].join(' ').match(/\p{L}+/gu));

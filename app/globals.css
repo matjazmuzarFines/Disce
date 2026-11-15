@@ -222,3 +222,15 @@ button.study-word:active {
   .doctor-row { grid-template-columns: 17px minmax(0, 1fr); }
   .doctor-row > select { grid-column: 2; width: 100%; }
 }
+
+.answer-status { border-bottom: 1px solid var(--line); padding: 8px 26px; background: #13161d; }
+.sync-message, .legacy-import { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 11px; color: var(--muted); }
+.answer-status button { padding: 5px 9px; border: 1px solid #3b4a65; color: #bad0f7; font-size: 11px; }
+.sync-error { color: #f0b59f; }
+.legacy-import { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); color: #b4c6e6; }
+.auth-error { color: #f0b59f; font-size: 12px; }
+.signout-error { margin: 10px 26px; }
+@media(max-width:650px) {
+  .answer-status { padding: 8px 15px; }
+  .legacy-import { align-items: start; flex-direction: column; }
+}
