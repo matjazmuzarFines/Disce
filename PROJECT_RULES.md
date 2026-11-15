@@ -28,7 +28,7 @@ Ta dokument je skupni dogovor za celotno aplikacijo. Ob začetku dela ga preberi
 
 - Izvirno besedilo, ločila in številčenje ostanejo ohranjeni.
 - Besede so gumbi, dostopni s tipkovnico. Interakcija ne zahteva hoverja ali vlečenja.
-- Slovar je lokalni in pregledljiv v `lib/lexicon.ts`; brez sprotnih AI klicev. Manjkajočega prevoda ne izmišljaj: označi manjkajoči vnos in ga dopolni pred razširitvijo gradiva.
+- Slovar je lokalni in pregledljiv v `lib/lexicon.ts` ter namenskem `lib/worksheet-lexicon.ts`; brez sprotnih AI klicev. Manjkajočega prevoda ne izmišljaj: označi manjkajoči vnos in ga dopolni pred razširitvijo gradiva.
 - Imena so označena kot lastna imena. Tuji primeri so označeni z ustreznim jezikom. Izraz v celoti je mogoče pojasniti kot slovnično zvezo.
 - Izvirne slike in ogled PDF-ja niso interaktivno besedilo. Besede v slikovnih nalogah so zato na voljo tudi kot ločeno interaktivno besedilo.
 - Nativni izbirniki ne omogočajo gumbov znotraj možnosti; njihove besede morajo biti dosegljive tudi v besednem naboru nad nalogo.
@@ -55,3 +55,51 @@ Ta dokument je skupni dogovor za celotno aplikacijo. Ob začetku dela ga preberi
 - Učne strani se lahko v prihodnje razdelijo po posameznih nalogah, neodvisno od razdelitve PDF-ja. Ohranimo izvirno številčenje nalog in sklice na tiskano stran ter PDF. Trenutno ostaneta obstoječi dve učni strani.
 - 2026-11-14: dodana odmik desnega modula med drsenjem in hkratni prikaz prevedenega navodila z manjšim klikljivim izvirnikom.
 - 2026-11-14: dodane potrjene zahteve za temno minimalistično večjezično aplikacijo, prevajanje besed in preverjanje številčenja. Predlagana ime Disce in klik v desni modul še čakata na uporabnikovo oceno.
+
+### Knjižnica učbenikov (potrjeno 2026-11-15)
+
+- Mape in učbeniki so v skupni mreži. Ozek levi meni ima Select all, Create, Premakni, Oznake, Rename in Delete. Izbor poteka s potrditvenimi polji. Rename je omogočen za en izbran element.
+- Create odpre pogovorno okno za ime mape in njene oznake. Izbrane učbenike in mape je mogoče premakniti v drugo mapo; premik mape vase ali v njene podmape je onemogočen.
+- Pod naslovom sta besedilni filter po imenih in izbira oznake. Filtra veljata za trenutno mapo.
+- Barvne oznake vsebujejo največ 8 znakov. Seznam se dopolnjuje ob dodajanju, obstoječe oznake je mogoče ponovno uporabiti. Oznake je mogoče dodati tudi obstoječim učbenikom in mapam.
+- Organizacija knjižnice in oznake se hranijo v localStorage tega brskalnika. Demo prijava nima ločenih uporabniških računov.
+- Izbris zahteva potrditev. Izbris mape odstrani tudi elemente v njej iz knjižnice; izvorne datoteke in shranjeni učni odgovori se ohranijo.
+- Delovni list 1, Il presente indicativo, obsega PDF strani 1–7 oziroma tiskane strani 38–44. Vseh sedem strani je prepisanih v komponente aplikacije, z razlagami 6.1–6.6 in nalogami 1–10. Dopisane rešitve se prezrejo. Izvirne strani so dostopne prek gumba Poglej izvirnik.
+
+### Gumbi in odzivi (potrjeno 2026-11-15)
+
+- Vsi vidni gumbi imajo sodoben videz z nežnim prelivom in senčenjem ter kratek animiran odziv ob prehodu, fokusu in pritisku. Povratna informacija mora biti vidna tudi pri upravljanju z dotikom in tipkovnico.
+- Preklopni gumbi imajo jasno trajno aktivno stanje. Select all po izboru dobi moder poudarek in napis Deselect all; izbrane kartice, potrditvena polja ter števec izbora so jasno označeni.
+- Besede v učnem besedilu imajo diskreten preliv, senčenje in odziv barve, ki ohrani berljivost in geometrijo vrstic.
+- Onemogočeni gumbi so vizualno umirjeni. Pri sistemski nastavitvi za zmanjšano gibanje se animacije izklopijo, barvni odzivi in prikaz stanja ostanejo.
+
+
+
+### Uvoz gradiva in skupni prikaz (potrjeno 2026-11-15)
+
+- Vsaka stran vsakega novega uvoza se v celoti pretvori v učne komponente v slogu obstoječega učbenika. To velja tudi za razlage, naslove, preglednice, primere in odstavke brez odgovarjanja.
+- Sken PDF-ja je dovoljen samo v ogledu izvirnika. Zgoraj desno ob sklicu na stran je gumb »Poglej izvirnik«. Glavni učni prikaz vedno uporablja besedilo in komponente aplikacije.
+- Vsako izvirno učno besedo je mogoče klikniti ali izbrati s tipkovnico in raziskati v skupnem desnem modulu. Navodila, razlage in odstavki imajo slovenski prevod ter manjši klikljivi izvirnik ob prikazanem prevodu.
+- Ročno dopisani odgovori, črtice in opombe se pri prepisu prezrejo. Tiskani primeri in vnaprej izpolnjene celice se ohranijo. Izvirno številčenje in povezave med nalogami se preverijo na vseh straneh.
+- Pred dokončanjem preveri vsebino vseh strani in pokritost besedila s slovarjem. Obstoječe shranjene odgovore ohrani tudi ob spremembi oblike nalog.
+- Za novo vrsto naloge sam predlagaj in izvedi smiselno interakcijo ter jo opiši v teh pravilih. Uporabnikov popravek nato velja za vse naslednje naloge iste vrste in se vnese v aplikacijo ter pravila.
+
+### Vzorci vrst gradiva – trenutna izvedba, odprta za uporabnikove popravke
+
+- **Razlaga in primeri.** Kartica z izvirno oznako in prevedljivim naslovom. Vsak odstavek ima svoj preklop prevoda; primer je vizualno povezan s pravilom. Besedilo je klikljivo tudi brez vnosa odgovora.
+- **Slovnične in spregatvene tabele.** Prava HTML-tabela z označenimi glavami vrstic in stolpcev, temnim videzom ter vodoravnim drsenjem na ozkem zaslonu. Klikljive so osebe, glagolske oblike in naslovi. Razdelitev na koren in končnico ter naglasne oznake se ohranijo, raziskovalnik pa razloži celotno obliko. Dolge tabele se lahko razdelijo v manjše skupine ob ohranjeni vsebini.
+- **Izpolnjevanje tabel.** Vsaka izvirna prazna celica ima lastno vnosno polje in dostopno oznako za vrstico ter stolpec. Tiskani zgledi ostanejo izpolnjeni.
+- **Dopolnjevanje povedi in odstavkov.** Posamezno polje neposredno na mestu vsake izvirne praznine. Glagolski namigi ostanejo vidni in klikljivi. Prevod ohrani praznine. Besedni nabor je prikazan kot klikljivo besedilo nad nalogo.
+- **Povezovanje besed in povedi.** Klikljivi nabori z izvirnimi številkami ali črkami. Vsaka vrstica vsebuje smiselne izbirnike za pripadajoče dele. Besede iz nativnih možnosti so dosegljive tudi zunaj izbirnika.
+- **Slikovne naloge.** Iz izvirnika se izrežejo samo fotografije ali ilustracije. Te dobijo nadomestno besedilo in izvirno oznako ter pripadajoča polja oziroma izbirnike. Navodila, imena in opisi so ločeno klikljivo besedilo v slogu aplikacije.
+- **Pogovori in predstavitve.** Ločene kartice po govorcu ali osebi; ohranijo se vrstni red replik, imena in izvirno besedilo. Prevod se prikaže ob izvirniku. Pri preoblikovanju sledi namensko polje za novo besedilo in izvirni začetek odgovora.
+- **Elektronska sporočila.** Temna besedilna kartica z ohranjenimi odstavki, pozdravom in podpisom. Dopolnjevanje poteka neposredno v sporočilu; besedni nabor in prevod sta ob kartici.
+- **Preoblikovanje vprašanj.** Vsaka postavka pokaže izvirno vprašanje, možnost prevoda in svoje polje za novo različico. Ohranijo se sklic na prejšnjo nalogo in številke postavk.
+- **Prosto izražanje in primerjava.** Najprej klikljiv, prevedljiv poziv, nato večvrstično polje za odgovor. Avtomatskega ocenjevanja ni brez zanesljivega ključa.
+
+### Razmiki prevodov in priprava gostovanja (2026-11-15)
+
+- Potrjeno: prevod in manjši izvirnik sta tesno skupaj, z 2 px razmika. To velja za navodila in prevedene odstavke.
+- Potrjeno: gradivo za izbrane učbenike ostaja v datotekah projekta. Uporabniška prijava se poveže s Supabase uporabniki. Uporabnik želi tudi shranjevanje odgovorov v tabelah Supabase.
+- Trenutno stanje: demo vstop in localStorage še delujeta. Pripravljena sta SQL za public.user_answers in postopek v docs/SUPABASE_VERCEL.md; povezava aplikacije s storitvami še ni vgrajena in SQL še ni izveden v projektu Supabase.
+- Predlog izvedbe: prijava z e-pošto in geslom za obstoječe Supabase uporabnike, ena vrstica odgovora na uporabnika, učbenik in stabilni identifikator polja ter RLS za lastne odgovore. Mape in oznake za zdaj ostanejo lokalne. Ob povezavi se pripravi varen uvoz dosedanjih lokalnih odgovorov v uporabnikov račun.
