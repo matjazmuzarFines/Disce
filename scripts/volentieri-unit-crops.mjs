@@ -1,0 +1,28 @@
+export const unitCrops={
+29:{map:[230,258,634,650]},
+30:{a:[84,220,225,164],b:[327,223,234,169],c:[574,223,232,164],d:[155,436,245,166],e:[467,429,249,175]},
+31:{demonstratives:[508,81,274,121],museum:[120,968,301,204],...Object.fromEntries([[160,379],[279,392],[399,378],[521,393],[155,484],[279,497],[399,485],[522,495]].map(([x,y],i)=>['transport-'+(i+1),[x,y,62,63]]))},
+32:{instruments:[140,569,498,206]},
+33:{...Object.fromEntries([[152,193,65,111],[307,201,50,105],[405,190,124,68],[638,194,162,115],[133,333,112,64],[281,352,73,88],[408,328,108,78],[549,247,83,109],[665,364,124,67],[139,428,67,155],[267,479,65,59],[374,496,113,67],[546,424,48,105],[676,477,94,91]].map((box,i)=>['food-'+(i+1),box])), 'dialogue-a':[115,666,210,199],'dialogue-b':[354,667,217,199],'dialogue-c':[579,660,221,207]},
+34:{order:[345,479,181,158],breakfast:[662,790,171,89]},
+35:{'bar-1':[402,76,179,112],'bar-2':[611,73,182,115],'bar-3':[369,200,181,114],'bar-4':[587,196,180,119],...Object.fromEntries([[112,409],[278,409],[444,409],[610,409],[192,516],[357,516],[524,516],[691,516]].map(([x,y],i)=>['clock-'+(i+1),[x,y,104,104]]))},
+36:{...Object.fromEntries([[55,322,210,138],[60,465,194,130],[65,599,192,136],[66,738,190,138],[632,318,207,142],[645,464,183,121],[638,590,195,139],[638,739,194,142]].map((box,i)=>['photo-'+(i+1),box]))},
+38:{family:[102,174,392,374]},
+39:{ideas:[100,267,764,280],map:[106,718,632,390]},
+40:{neighbour:[481,63,284,296],descriptions:[99,416,675,376]},
+43:{a:[246,286,194,185],b:[460,258,153,170],c:[631,305,165,164],d:[625,499,219,164],e:[667,681,143,158],f:[510,790,247,157],g:[318,775,178,174],h:[240,670,173,138],i:[246,509,173,133]},
+44:{a:[108,519,166,114],b:[282,518,166,115],c:[458,519,166,114],d:[634,519,166,114]},
+45:{memory:[269,316,318,200],hours:[602,658,169,164]},
+46:{office:[552,87,251,171]},
+47:{weekend:[99,217,714,170]},
+48:{dice:[395,321,244,193]},
+49:{...Object.fromEntries([[109,475,184,107],[105,591,190,94],[105,695,191,124],[104,825,192,119],[665,429,133,117],[660,553,146,109],[654,665,174,115],[650,794,179,129]].map((box,i)=>['routine-'+(i+1),box])),greta:[484,992,179,180]},
+50:{sara:[459,400,122,110],paolo:[565,440,135,108]},
+51:{concert:[480,589,230,155],pizza:[134,910,120,181],swimming:[463,910,122,183]},
+53:{roma:[159,298,167,95],milano:[369,296,168,97],bologna:[589,295,167,98],torino:[184,445,166,95],perugia:[391,444,168,97],cagliari:[590,445,166,96],
+'event-1':[185,666,271,143],'event-2':[541,646,260,177],'event-3':[130,826,166,246],'event-4':[313,815,264,161],'event-5':[301,969,290,153],'event-6':[593,834,201,257]},
+54:{food:[211,258,607,214]},
+};
+export const unitImageLabels={
+'v29-map':'Središče Bologne: izvirne oznake a–i','v31-demonstratives':'Questo in quello: blizu in daleč','v31-museum':'Muzej v Bologni','v32-instruments':'Izvirna glasbila in osebe','v34-order':'Kartica sendviča in kocka','v34-breakfast':'Italijanski zajtrk','v38-family':'Družinsko drevo: Piero, Lucia, Anna, Lorenzo, Sara, Matteo, Giulio','v39-ideas':'Zamisli za četrt','v39-map':'Izvirni načrt četrti','v40-neighbour':'Izmišljeni sosed – glasbenik','v40-descriptions':'Ilustracije za opis prebivalcev','v45-memory':'Zgled para za igro spomin: cucinare','v45-hours':'Italijanski urnik','v46-office':'Paolo v pisarni','v47-weekend':'Izvirne zamisli za konec tedna','v48-dice':'Kartica glagola in kocka','v49-greta':'Greta Thunberg','v50-sara':'Sara','v50-paolo':'Paolo','v51-concert':'Koncert','v51-pizza':'Kartica: picerija','v51-swimming':'Kartica: plavanje in utrujenost','v53-roma':'Roma','v53-milano':'Milano','v53-bologna':'Bologna','v53-torino':'Torino','v53-perugia':'Perugia','v53-cagliari':'Cagliari','v54-food':'Sendvič, piknik in testenine',
+};

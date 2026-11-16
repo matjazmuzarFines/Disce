@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { getBrowserSupabase } from '../lib/supabase/browser';
 import { AnswerProvider } from './answer-provider';
+import {LibraryProvider} from './library-provider';
 import TextbookApp from './textbook-app';
 
 export type AppUser = { id: string; email: string; name: string };
@@ -59,10 +60,11 @@ export function AuthShell({ initialUser }: { initialUser: AppUser | null }) {
     if (authError) throw new Error('Odjava ni uspela. Poskusi znova.');
     setUser(null);
     setPassword('');
+    router.replace('/');
     router.refresh();
   }
 
-  if (user) return <AnswerProvider key={user.id} userId={user.id}><TextbookApp user={user} onSignOut={signOut}/></AnswerProvider>;
+  if (user) return <AnswerProvider key={user.id} userId={user.id}><LibraryProvider userId={user.id}><TextbookApp user={user} onSignOut={signOut}/></LibraryProvider></AnswerProvider>;
   return <main className="login"><section className="login-form">
     <span className="brand">disce<span className="brand-dot">.</span></span>
     <h1>Prijava</h1>

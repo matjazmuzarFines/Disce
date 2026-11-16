@@ -1,4 +1,5 @@
 import {worksheetLexicon,lookupWorksheet} from './worksheet-lexicon';
+import {lookupVolentieri} from './volentieri-lexicon';
 ﻿export type Entry={meaning:string;kind:string;lemma?:string;note?:string;forms?:[string,string][];example?:[string,string]};
 export const lexicon:Record<string,Entry>={};
 function basic(kind:string, rows:string){for(const row of rows.split('\n')){const [word,meaning,note]=row.split('|');if(word)lexicon[word]={meaning,kind,note};}}
@@ -116,6 +117,6 @@ lexicon.australiano.note='Moška ednina pridevnika australiano (avstralski); son
 lexicon.spagnola.meaning='Španka';
 lexicon.spagnola.note='Ženska ednina pridevnika spagnolo (španski); sono spagnola = sem Španka.';
 lexicon.della={meaning:'od / pripadnost',kind:'predlog s členom',note:'di + la'};
-export function lookupInContext(word:string,context:string):Entry|undefined{const key=word.toLocaleLowerCase('it');if(context.startsWith('worksheet:')){const normalized=key.replace(/-/g,'');return lookupWorksheet(word,context)||lookup(normalized);}const entry=lookup(word);if(context==='italiano'||context==='francese'||context==='portoghese'||context==='spagnolo'){const meaning:Record<string,string>={italiano:'italijanščina',francese:'francoščina',portoghese:'portugalščina',spagnolo:'španščina'};if(meaning[key])return {...entry!,meaning:meaning[key],note:'V glavi tabele: ime jezika.'};}if(key==='a'&&context==='C, i, a, o.')return {meaning:'črka A',kind:'črka'};if(key==='i'&&context==='C, i, a, o.')return {meaning:'črka I',kind:'črka'};return entry;}
+export function lookupInContext(word:string,context:string):Entry|undefined{const key=word.toLocaleLowerCase('it');if(context.startsWith('volentieri:')){const normalized=key.replace(/\/[ao]$/u,'');return lookupVolentieri(word,context)||lookupWorksheet(normalized,context)||lookup(normalized);}if(context.startsWith('worksheet:')){const normalized=key.replace(/-/g,'');return lookupWorksheet(word,context)||lookup(normalized);}const entry=lookup(word);if(context==='italiano'||context==='francese'||context==='portoghese'||context==='spagnolo'){const meaning:Record<string,string>={italiano:'italijanščina',francese:'francoščina',portoghese:'portugalščina',spagnolo:'španščina'};if(meaning[key])return {...entry!,meaning:meaning[key],note:'V glavi tabele: ime jezika.'};}if(key==='a'&&context==='C, i, a, o.')return {meaning:'črka A',kind:'črka'};if(key==='i'&&context==='C, i, a, o.')return {meaning:'črka I',kind:'črka'};return entry;}
 
 for(const [word,entry] of Object.entries(worksheetLexicon)){if(!lexicon[word])lexicon[word]=entry;}

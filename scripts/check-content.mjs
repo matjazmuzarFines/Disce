@@ -1,6 +1,6 @@
 ﻿import fs from 'node:fs';
 import {registerHooks} from 'node:module';
-registerHooks({resolve(specifier,context,nextResolve){return nextResolve(specifier==='./worksheet-lexicon'?specifier+'.ts':specifier,context);}});
+registerHooks({resolve(specifier,context,nextResolve){return nextResolve(['./worksheet-lexicon','./volentieri-lexicon','./volentieri-unit2','./volentieri-unit3','./volentieri-units-lexicon'].includes(specifier)?specifier+'.ts':specifier,context);}});
 const {lookup,lookupInContext}=await import('../lib/lexicon.ts');
 const source=fs.readFileSync('components/textbook-app.tsx','utf8');
 const instructions=Array.from(source.matchAll(/\bit="([^"]+)"/g),m=>m[1]);

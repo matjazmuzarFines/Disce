@@ -1,9 +1,10 @@
 ﻿'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, ChevronRight, Eye, Languages, X } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, ChevronRight, Eye, Languages } from 'lucide-react';
 import { WordPanel } from './study-text';
-import { Instruction, TranslatedText, WorksheetText as W } from './lesson-content';
+import {ChapterMenu,PageNavigation} from './lesson-navigation';
+import { Instruction, SourcePage, TranslatedText, WorksheetText as W } from './lesson-content';
 import { useAnswers } from './answer-provider';
 import * as content from '../lib/worksheet';
 import type { Bilingual } from '../lib/worksheet';
@@ -11,7 +12,7 @@ import type { Bilingual } from '../lib/worksheet';
 type AnswerProps = { answers: Record<string, string>; put: (id: string, value: string) => void };
 
 function ConjugationTable({ models }: { models: { title: Bilingual; forms: string[] }[] }) {
-  return <div className="table-scroll grammar-table"><table><thead><tr><th scope="col">Oseba</th>{models.map(model => <th scope="col" key={model.title.it}><TranslatedText value={model.title}/></th>)}</tr></thead><tbody>{content.persons.map((person, row) => <tr key={person}><th scope="row"><W value={person}/></th>{models.map(model => <td key={model.title.it}><W value={model.forms[row]}/></td>)}</tr>)}</tbody></table></div>;
+  return <div className="table-scroll grammar-table" tabIndex={0} role="region" aria-label="Preglednica, vodoravno pomikanje"><table><thead><tr><th scope="col">Oseba</th>{models.map(model => <th scope="col" key={model.title.it}><TranslatedText value={model.title}/></th>)}</tr></thead><tbody>{content.persons.map((person, row) => <tr key={person}><th scope="row"><W value={person}/></th>{models.map(model => <td key={model.title.it}><W value={model.forms[row]}/></td>)}</tr>)}</tbody></table></div>;
 }
 
 function Section({ id, heading, children }: { id: string; heading: Bilingual; children: React.ReactNode }) {
@@ -42,19 +43,12 @@ function LegacyAnswer({ number, answers }: { number: number; answers: Record<str
   return answers[number] ? <details className="legacy-answer"><summary>Prejšnji zapis za nalogo {number}</summary><p>{answers[number]}</p></details> : null;
 }
 
-function OriginalPage({ page, onClose }: { page: number; onClose: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => { dialog.current?.showModal(); }, []);
-  return <dialog className="source-dialog" ref={dialog} aria-label={`Izvirnik, PDF stran ${page}, tiskana stran ${page + 37}`} onCancel={onClose} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><button autoFocus onClick={onClose}><X size={18}/> Zapri izvirnik</button><img src={`/material/worksheet-${page}.png`} alt={`Izvirna zaporedna stran PDF-ja ${page}, tiskana stran ${page + 37}`}/></dialog>;
-}
-
-export function Worksheet({ onBack }: { onBack: () => void }) {
-  const [page, setPage] = useState(1);
+export function Worksheet({ onBack,page,onPageChange }: { onBack: () => void;page:number;onPageChange:(page:number)=>void }) {
   const [original, setOriginal] = useState(false);
   const { answers, put } = useAnswers('worksheet');
   const fields = { answers, put };
-  const go = (next: number) => { setPage(next); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  return <><div className="lesson-bar"><button onClick={onBack}><ArrowLeft size={16}/> Učbeniki</button><span>Delovni list 1 <ChevronRight size={14}/><b>6 · Il presente indicativo</b></span></div><div className="workspace worksheet-workspace"><aside className="sidebar worksheet-sidebar"><span className="eyebrow">DELOVNI LIST 1</span><div className="unit"><span>6</span><div><b>Il presente indicativo</b><small>Povedni sedanjik</small></div></div>{content.worksheetPages.map((label, index) => <button key={label} className={page === index + 1 ? 'selected' : ''} aria-current={page === index + 1 ? 'page' : undefined} onClick={() => go(index + 1)}><div>{label}<small>Tiskana str. {index + 38} · PDF {index + 1}</small></div>{page === index + 1 && <ChevronRight size={16}/>}</button>)}</aside><main className="lesson worksheet-lesson"><div className="lesson-heading"><div><span className="eyebrow">POGLAVJE 6 / {content.worksheetPages[page - 1].toUpperCase()}</span><h1><W value={content.worksheetTitle.it}/></h1></div><span className="page-number">{page + 37}<small>TISKANA STRAN</small></span></div><div className="source-row"><span>PDF: zaporedna stran {page} · tiskana stran {page + 37}</span><button onClick={() => setOriginal(true)}><Eye size={15}/> Poglej izvirnik</button></div><div key={page}>
+  const go = (next: number) => { onPageChange(next); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  return <><div className="lesson-bar"><button onClick={onBack}><ArrowLeft size={16}/> Učbeniki</button><span>Delovni list 1 <ChevronRight size={14}/><b>6 · Il presente indicativo</b></span></div><div className="workspace worksheet-workspace"><ChapterMenu title="DELOVNI LIST 1" chapters={[{id:'chapter-6',title:'6 · Il presente indicativo',subtitle:'Povedni sedanjik',pages:content.worksheetPages.map((label,index)=>({page:index+1,label,detail:'Tiskana str. '+(index+38)}))}]} page={page} onGo={go}/><main className="lesson worksheet-lesson"><PageNavigation position="top" page={page} total={7} onGo={go}/><div className="lesson-heading"><div><span className="eyebrow">POGLAVJE 6 / {content.worksheetPages[page - 1].toUpperCase()}</span><h1><W value={content.worksheetTitle.it}/></h1></div><span className="page-number">{page + 37}<small>TISKANA STRAN</small></span></div><div className="source-row"><span>PDF: zaporedna stran {page} · tiskana stran {page + 37}</span><button onClick={() => setOriginal(true)}><Eye size={15}/> Poglej izvirnik</button></div><div key={page}>
     {page === 1 && <>
       <Section id="6.1" heading={content.headings.forms}><ConjugationTable models={content.regularModels}/></Section>
       <Section id="6.2" heading={content.headings.usage}><TranslatedText value={content.text('Il presente indicativo che si usa per:', 'Povedni sedanjik uporabljamo za:')}/><div className="usage-rows">{content.usage.map(row => <article key={row.rule.it}><TranslatedText value={row.rule}/><TranslatedText value={row.example}/></article>)}</div></Section>
@@ -66,7 +60,7 @@ export function Worksheet({ onBack }: { onBack: () => void }) {
       <Section id="6.6" heading={content.headings.differences}><div className="grammar-cards">{content.modalUsage.map(item => <article key={item.title.it}><h3><W value={item.title.it}/></h3><TranslatedText value={item.rule}/>{item.examples.map(example => <blockquote key={example.it}><TranslatedText value={example}/></blockquote>)}</article>)}</div></Section>
     </>}
     {page === 3 && <>
-      <Section id="1" heading={content.headings.ex1}><div className="table-scroll grammar-table"><table><thead><tr><th scope="col">Oseba</th>{['cant-ARE', 'scriv-ERE', 'apr-IRE', 'fin-IRE'].map(word => <th scope="col" key={word}><W value={word}/></th>)}</tr></thead><tbody>{content.persons.map((person, row) => <tr key={person}><th scope="row"><W value={person}/></th>{[0, 1, 2, 3].map(column => {
+      <Section id="1" heading={content.headings.ex1}><div className="table-scroll grammar-table" tabIndex={0} role="region" aria-label="Preglednica, vodoravno pomikanje"><table><thead><tr><th scope="col">Oseba</th>{['cant-ARE', 'scriv-ERE', 'apr-IRE', 'fin-IRE'].map(word => <th scope="col" key={word}><W value={word}/></th>)}</tr></thead><tbody>{content.persons.map((person, row) => <tr key={person}><th scope="row"><W value={person}/></th>{[0, 1, 2, 3].map(column => {
         const given: Record<string, string> = { '0-0': 'cant-o', '1-1': 'scriv-i', '2-2': 'apr-e', '3-3': 'fin-iamo', '4-1': 'scriv-ete', '5-0': 'cant-ano' };
         return <td key={column}>{given[`${row}-${column}`] ? <W value={given[`${row}-${column}`]}/> : <AnswerField id={`ex1-${row}-${column}`} label={`Naloga 1, ${person}, ${['cantare', 'scrivere', 'aprire', 'finire'][column]}`} {...fields}/>}</td>;
       })}</tr>)}</tbody></table></div><LegacyAnswer number={1} answers={answers}/></Section>
@@ -87,5 +81,5 @@ export function Worksheet({ onBack }: { onBack: () => void }) {
       <section className="exercise grammar-tip" aria-label="Pomoč pri naglasu in pomnjenju oblik">{content.accentTips.map(tip => <TranslatedText key={tip.it} value={tip}/>)}</section>
       <Section id="10" heading={content.headings.ex10}><div className="grammar-example"><span className="eyebrow">PRIMER</span><TranslatedText value={content.modalExample}/></div><ol className="modal-sentences">{content.modalSentences.map((sentence, index) => <li key={sentence.it}><FillText id={`ex10-${index}`} value={sentence} {...fields}/></li>)}</ol><LegacyAnswer number={10} answers={answers}/></Section>
     </>}
-    </div><div className="page-navigation"><button disabled={page === 1} onClick={() => go(page - 1)}><ArrowLeft size={16}/> Prejšnja stran</button><span>{page} / 7</span><button disabled={page === 7} onClick={() => go(page + 1)}>Naslednja stran <ArrowRight size={16}/></button></div></main><WordPanel/></div>{original && <OriginalPage page={page} onClose={() => setOriginal(false)}/>}</>;
+    </div><PageNavigation page={page} total={7} onGo={go}/></main><WordPanel/></div>{original && <SourcePage src={`/material/worksheet-${page}.png`} description={`Izvirna zaporedna stran PDF-ja ${page}, tiskana stran ${page+37}`} onClose={() => setOriginal(false)}/>}</>;
 }

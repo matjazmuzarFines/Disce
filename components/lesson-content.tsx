@@ -1,9 +1,22 @@
 ﻿'use client';
 
-import { useState } from 'react';
-import { Languages } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Languages, X } from 'lucide-react';
 import { StudyText } from './study-text';
 import type { Bilingual } from '../lib/worksheet';
+
+export function SourcePage({ src, description, onClose }: {src:string; description:string; onClose:()=>void}) {
+  const dialog=useRef<HTMLDialogElement>(null);
+  useEffect(()=>{
+    const node=dialog.current;
+    const trigger=document.activeElement as HTMLElement|null;
+    const overflow=document.body.style.overflow;
+    node?.showModal();
+    document.body.style.overflow='hidden';
+    return ()=>{node?.close();document.body.style.overflow=overflow;if(trigger?.isConnected)trigger.focus();};
+  },[]);
+  return <dialog className="source-dialog" ref={dialog} aria-label={description} onCancel={onClose} onClick={event=>{if(event.target===event.currentTarget)onClose();}}><button type="button" autoFocus onClick={onClose}><X size={18}/> Zapri izvirnik</button><img src={src} alt={description}/></dialog>;
+}
 
 export function Instruction({ id, it, sl, scope }: { id: string; it: string; sl: string; scope?: string }) {
   const [translated, setTranslated] = useState(false);

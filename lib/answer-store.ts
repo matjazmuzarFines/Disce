@@ -15,7 +15,7 @@ export function answerBackend(client: SupabaseClient, userId: string): AnswerBac
       let offset = 0;
       for (;;) {
         const { data, error } = await client.from('user_answers')
-          .select('book_id,field_id,answer').eq('user_id', userId)
+          .select('book_id,field_id,answer').eq('user_id', userId).neq('book_id','__library__')
           .order('book_id').order('field_id').range(offset, offset + 999);
         if (error) throw error;
         rows.push(...data);
@@ -24,6 +24,7 @@ export function answerBackend(client: SupabaseClient, userId: string): AnswerBac
       }
     },
     async write(rows, preserveExisting = false) {
+      rows=rows.filter(row=>row.book_id!=='__library__');
       if (!rows.length) return;
       const { error } = await client.from('user_answers').upsert(
         rows.map(row => ({ ...row, user_id: userId })),
@@ -41,7 +42,7 @@ function stringAnswers(value: unknown): Answers {
 
 function bookAnswers(value: unknown): BookAnswers {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
-  return Object.fromEntries(Object.entries(value).map(([book, answers]) => [book, stringAnswers(answers)]));
+  return Object.fromEntries(Object.entries(value).filter(([book])=>book!=='__library__').map(([book, answers]) => [book, stringAnswers(answers)]));
 }
 
 function rowsOf(answers: BookAnswers): AnswerRow[] {
@@ -119,6 +120,9 @@ export class AnswerStore {
     const generation = ++this.generation;
     try {
       const cache = JSON.parse(storage?.getItem(this.storageKey) || '{}');
+      if(cache.answers?.__library__||cache.pending?.__library__){
+        storage?.setItem('disce-library-legacy-v1:'+this.userId,JSON.stringify({answers:cache.answers?.__library__,pending:cache.pending?.__library__}));
+      }
       this.pending = bookAnswers(cache.pending);
       this.update({ answers: bookAnswers(cache.answers), legacyCount: this.legacyRows().length });
     } catch {
@@ -151,7 +155,7 @@ export class AnswerStore {
       return true;
     } catch {
       if (this.active && generation === this.generation) {
-        this.update({ loading: false, error: 'Odgovorov ni mogoče naložiti iz Supabase. Preveri povezavo in tabelo user_answers ter poskusi znova.' });
+        this.update({ loading: false, error: 'Podatkov računa ni mogoče naložiti. Preveri povezavo in poskusi znova.' });
       }
       return false;
     } finally {
@@ -163,7 +167,7 @@ export class AnswerStore {
   }
 
   put = (book: string, field: string, answer: string) => {
-    if (!this.active) return;
+    if (!this.active||book==='__library__') return;
     this.pending = { ...this.pending, [book]: { ...this.pending[book], [field]: answer } };
     this.update({ answers: { ...this.snapshot.answers, [book]: { ...this.snapshot.answers[book], [field]: answer } } });
     this.persist();
@@ -205,7 +209,7 @@ export class AnswerStore {
       }
       return true;
     } catch {
-      if (this.active && generation === this.generation) this.update({ error: 'Odgovori še niso shranjeni v Supabase. Preveri povezavo in poskusi znova.' });
+      if (this.active && generation === this.generation) this.update({ error: 'Spremembe še niso shranjene v računu. Preveri povezavo in poskusi znova.' });
       return false;
     } finally {
       if (this.active && generation === this.generation) this.update({ syncing: false });
@@ -215,6 +219,7 @@ export class AnswerStore {
   retry = async () => {
     if (this.reading) return false;
     if (this.inFlight) await this.inFlight;
+    if (this.reading) return false;
     if (!await this.load()) return false;
     return this.flush();
   };

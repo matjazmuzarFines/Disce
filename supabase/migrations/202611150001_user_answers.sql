@@ -1,4 +1,4 @@
-﻿-- Run once in the Supabase SQL Editor for this project.
+-- Run once in the Supabase SQL Editor for this project.
 -- Each row is one user's answer to one stable field in one textbook.
 begin;
 

@@ -1,15 +1,9 @@
 ﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import {useLibrary} from './library-provider';
 import { ArrowLeft, ArrowRight, BookOpen, CheckSquare, Folder, FolderPlus, Pencil, Search, Tag, Trash2, X } from 'lucide-react';
 
-type Item = { id: string; name: string; kind: 'book' | 'folder'; parent: string | null; labels: string[] };
-type Label = { id: string; name: string; color: string };
-type LibraryData = { items: Item[]; labels: Label[] };
-const initial: LibraryData = { items: [
-  { id: 'volentieri', name: 'Volentieri! A1', kind: 'book', parent: null, labels: [] },
-  { id: 'worksheet', name: 'Delovni list 1', kind: 'book', parent: null, labels: [] },
-], labels: [] };
 const colors = [
   '#82a8fa', '#5c86e8', '#93c5fd', '#7dd3fc', '#67d4df', '#a5e2e8',
   '#be9cff', '#a78bfa', '#d8b4fe', '#ed9bc7', '#f472b6', '#fda4af',
@@ -20,11 +14,8 @@ function createLibraryId() {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   return Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
-export function Library({ onOpen, userId }: { onOpen: (id: string) => void; userId: string }) {
-  const storageKey = `disce-library-v1:${userId}`;
-  const [data, setData] = useState<LibraryData>(initial);
-  const [loaded, setLoaded] = useState(false);
-  const [folder, setFolder] = useState<string | null>(null);
+export function Library({ onOpen,folder,onNavigate }: { onOpen: (id: string) => void; folder:string|null; onNavigate:(id:string|null)=>void }) {
+  const {data,setData,ready:loaded}=useLibrary();
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('');
@@ -37,20 +28,7 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
   const [error, setError] = useState('');
   const [labelStatus, setLabelStatus] = useState('');
   const dialogRef = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    try {
-      let stored = localStorage.getItem(storageKey);
-      const owner = localStorage.getItem('disce-legacy-library-owner');
-      if (!stored && (!owner || owner === userId)) {
-        stored = localStorage.getItem('disce-library-v1');
-        if (stored) localStorage.setItem('disce-legacy-library-owner', userId);
-      }
-      const saved = JSON.parse(stored || 'null');
-      if (saved && Array.isArray(saved.items) && Array.isArray(saved.labels)) setData(saved);
-    } catch {}
-    setLoaded(true);
-  }, [storageKey, userId]);
-  useEffect(() => { if (loaded) localStorage.setItem(storageKey, JSON.stringify(data)); }, [data, loaded, storageKey]);
+  useEffect(()=>{setSelected([]);setQuery('');setFilter('');},[folder]);
   useEffect(() => {
     if (dialog) dialogRef.current?.showModal();
     else dialogRef.current?.close();
@@ -61,7 +39,7 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
   const allSelected = visible.length > 0 && visible.every(item => selected.includes(item.id));
   const single = selection.length === 1 ? selection[0] : undefined;
   const toggle = (id: string) => setSelected(value => value.includes(id) ? value.filter(key => key !== id) : [...value, id]);
-  const navigate = (id: string | null) => { setFolder(id); setSelected([]); setQuery(''); setFilter(''); };
+  const navigate = (id: string | null) => { onNavigate(id); setSelected([]); setQuery(''); setFilter(''); };
   const open = (mode: typeof dialog) => {
     setError(''); setLabelStatus(''); setTitle(mode === 'rename' ? single?.name || '' : '');
     setLabelName(''); setChosenLabels(single?.labels || []); setDestination(''); setDialog(mode);
@@ -79,7 +57,7 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     if ((dialog === 'create' || dialog === 'rename') && !title.trim()) { setError('Vnesi ime.'); return; }
-    if (dialog === 'create') setData(value => ({ ...value, items: [...value.items, { id: createLibraryId(), name: title.trim(), kind: 'folder', parent: folder, labels: chosenLabels }] }));
+    if (dialog === 'create') setData(value => ({ ...value, items: [...value.items, { id: createLibraryId(), name: title.trim(), kind: 'folder', parent: folder, labels: chosenLabels, sortOrder:Math.max(-1,...value.items.filter(item=>item.parent===folder).map(item=>item.sortOrder))+1 }] }));
     if (dialog === 'rename' && single) setData(value => ({ ...value, items: value.items.map(item => item.id === single.id ? { ...item, name: title.trim() } : item) }));
     if (dialog === 'labels') setData(value => ({ ...value, items: value.items.map(item => selected.includes(item.id) ? { ...item, labels: chosenLabels } : item) }));
     if (dialog === 'delete') { setData(value => ({ ...value, items: value.items.filter(item => !excluded.has(item.id)) })); setSelected([]); }
@@ -96,10 +74,11 @@ export function Library({ onOpen, userId }: { onOpen: (id: string) => void; user
     setChosenLabels(value => value.includes(id) ? value : [...value, id]); setLabelName(''); setError('');
     setLabelStatus(`Oznaka »${existing?.name || name}« je izbrana. Potrdi s Shrani.`);
   };
+  if(!loaded)return <main className="library library-manager" aria-busy="true"><h1>Moji učbeniki</h1><p className="muted">Nalagam mape in oznake…</p></main>;
   return <main className="library library-manager">
-    <h1>Moji učbeniki</h1>
+    <h1>{current?.name||'Moji učbeniki'}</h1>
     <div className="library-filters"><label className="library-search"><Search size={17}/><input aria-label="Išči po imenu" placeholder="Išči učbenike in mape…" value={query} onChange={event => { setQuery(event.target.value); setSelected([]); }}/></label><select aria-label="Filtriraj po oznaki" value={filter} onChange={event => { setFilter(event.target.value); setSelected([]); }}><option value="">Vse oznake</option>{data.labels.map(label => <option value={label.id} key={label.id}>{label.name}</option>)}</select></div>
-    <div className="library-location"><button onClick={() => navigate(null)}>Vsi učbeniki</button>{current && <><span>/</span><button onClick={() => navigate(current.parent)}><ArrowLeft size={13}/> Nazaj</button><span>{current.name}</span></>}<small className={selected.length ? 'selection-count' : ''} role="status">{selected.length ? `${selected.length} izbranih` : `${visible.length} elementov`}</small></div>
+    <div className="library-location"><small className={selected.length ? 'selection-count' : ''} role="status">{selected.length ? `${selected.length} izbranih` : `${visible.length} elementov`}</small></div>
     <div className="library-layout"><aside className="library-tools" aria-label="Upravljanje knjižnice">
       <button disabled={!visible.length} aria-pressed={allSelected} onClick={() => setSelected(allSelected ? [] : visible.map(item => item.id))}><CheckSquare size={19}/><span>{allSelected ? 'Deselect all' : 'Select all'}</span></button>
       <button onClick={() => open('create')}><FolderPlus size={19}/><span>Create</span></button>

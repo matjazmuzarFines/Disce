@@ -9,7 +9,9 @@ Aplikacija ima prijavo in odjavo s Supabase Auth ter samodejno shranjevanje odgo
 | Učno besedilo, slovar, slike in ogled izvirnikov | Datoteke projekta, objavljene skupaj z aplikacijo na Vercelu |
 | Uporabniki, gesla in prijavne seje | Supabase Auth, vgrajena tabela auth.users |
 | Odgovori na posamezna polja | Supabase, tabela public.user_answers |
-| Mape in oznake knjižnice | Za zdaj localStorage brskalnika |
+| Mape in njihova hierarhija | Supabase, library_folders |
+| Katalog gradiv in uporabnikova organizacija | Supabase, textbooks in library_books |
+| Oznake in povezave | Supabase, library_tags, library_folder_tags in library_book_tags |
 
 »Gradivo lokalno« tu pomeni datoteke v repozitoriju. Vercel dobi kopijo teh datotek ob objavi. Mapa data/ je izključena iz Gita. Aplikacija uporablja učne komponente v app/, components/ in lib/ ter slikovne datoteke v public/material/. Poskrbi, da so tudi nove datoteke del commita.
 
@@ -18,7 +20,7 @@ Aplikacija ima prijavo in odjavo s Supabase Auth ter samodejno shranjevanje odgo
 1. Odpri obstoječi Supabase projekt, namenjen tej aplikaciji.
 2. V Authentication preveri, da je omogočena prijava z e-pošto in geslom. V nastavitvah prijave izklopi Allow new users to sign up, ker želiš uporabljati obstoječe uporabnike.
 3. V Authentication → Users preveri svojega uporabnika. Če ga še ni, ga ustvari prek Add user → Create new user in nastavi e-pošto ter geslo. Če uporabnik že obstaja in gesla ne poznaš, uporabi obnovitev gesla.
-4. V SQL Editor odpri novo poizvedbo, prilepi vsebino datoteke supabase/migrations/202611150001_user_answers.sql in jo zaženi. Tabela bo sprva prazna.
+4. V SQL Editor najprej zaženi supabase/migrations/202611150001_user_answers.sql (če tabela odgovorov še ni pripravljena), nato celotno supabase/20261116_library.sql. Druga skripta ustvari relacijsko knjižnico in prenese stare knjižnične zapise. Podrobnosti so v [LIBRARY_DATABASE.md](LIBRARY_DATABASE.md).
 5. V nastavitvah API oziroma oknu Connect poišči Project URL ter publishable key. Podatka bosta uporabljena v aplikaciji.
 6. V Authentication → URL Configuration dodaj http://localhost:3000 med dovoljene razvojne povratne naslove. Po objavi nastavi Site URL na dejanski produkcijski naslov in dovoli tudi potrebne produkcijske poti za povratne povezave. To je potrebno za tokove s povezavami po e-pošti, kot sta potrditev in obnova gesla.
 
@@ -43,12 +45,12 @@ Obstoječi podatki so naslednji.
 | --- | --- | --- |
 | parola-answers | Odgovori učbenika Volentieri! A1 | volentieri |
 | disce-worksheet-answers | Odgovori delovnega lista, tudi prejšnji skupni zapisi | worksheet |
-| disce-library-v1 | Mape, prikazna imena in oznake knjižnice | Ostane lokalno |
+| disce-library-v1 | Stare mape, prikazna imena in oznake knjižnice | Prenos v relacijsko knjižnico ob prvi inicializaciji |
 | parola-name | Ime demo uporabnika | Prijavno ime bo vezano na Supabase uporabnika |
 
 Po prijavi gumb Uvozi v moj račun ponudi stare demo odgovore. Uvoz ohrani stare podatke v brskalniku in odgovore, ki so že shranjeni v Supabase. Čakajoče nove spremembe se shranijo ločeno po uporabniku. Vmesnik prikazuje stanje shranjevanja in gumb za ponovni poskus. Ob ponovni povezavi se čakajoči zapisi ponovno pošljejo. Po odjavi se predhodni odgovori odstranijo iz stanja aplikacije.
 
-Mape in oznake imajo zdaj lokalni ključ disce-library-v1:USER_ID, varnostni zapis odgovorov pa disce-answers-v1:USER_ID. Stari globalni ključi ostanejo za uvoz. Prejšnja demo knjižnica se prenese prvemu prijavljenemu uporabniku tega brskalnika.
+Stara knjižnica disce-library-v1:USER_ID se samodejno prenese le v še neinicializirano knjižnico računa. Obstoječa organizacija v bazi ima prednost. Globalni demo ključ ne sme pripasti drugemu lastniku uvoza. Varnostni zapis in čakajoče spremembe knjižnice uporabljajo disce-library-v2:USER_ID; odgovori uporabljajo disce-answers-v1:USER_ID.
 Gradivo mora ohraniti stabilne book_id in field_id tudi ob spremembah videza. Primer field_id je predstavitev-0 za učbenik ali ex1-0-1 za delovni list. Nova različica vsebine, ki spremeni pomen polja, potrebuje nov identifikator.
 
 ## Vercel
@@ -78,3 +80,5 @@ Gradivo mora ohraniti stabilne book_id in field_id tudi ob spremembah videza. Pr
 - Javni Supabase ključ doseže nastavitve prijave. E-poštna prijava je omogočena. Neprijavljen zahtevek do user_answers je zavrnjen.
 - Ob preverjanju je bila nova registracija v Supabase še omogočena. V Sign In / Providers izklopi Allow new users to sign up, če želiš samo že obstoječe uporabnike.
 - Dejansko prijavo s svojim geslom, zapis odgovora in obnovo v drugem brskalniku še preveri. Geslo vnesi neposredno v aplikacijo.
+
+Knjižnica uporablja ločene relacijske tabele z RLS; v user_answers ostanejo samo učni odgovori. SQL za pripravo in prenos je v supabase/20261116_library.sql. Vse teste shranjevanja zažene npm.cmd run test:storage.

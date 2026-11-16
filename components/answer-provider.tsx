@@ -14,11 +14,13 @@ export function AnswerProvider({ userId, children }: { userId: string; children:
     try { storage = window.localStorage; } catch {}
     void store.start(storage);
     const retry = () => { void store.retry(); };
-    const flush = () => { if (document.visibilityState === 'hidden') void store.flush(); };
+    const flush = () => { if (document.visibilityState === 'hidden') void store.flush(); else void store.retry(); };
     window.addEventListener('online', retry);
+    window.addEventListener('focus', retry);
     document.addEventListener('visibilitychange', flush);
     return () => {
       window.removeEventListener('online', retry);
+      window.removeEventListener('focus', retry);
       document.removeEventListener('visibilitychange', flush);
       store.stop();
     };
@@ -44,7 +46,7 @@ export function AnswerStatus() {
   const [retrying, setRetrying] = useState(false);
   return <div className="answer-status" aria-live="polite">
     <div className={'sync-message ' + (snapshot.error ? 'sync-error' : '')}>
-      <span>{snapshot.error || (snapshot.loading ? 'Nalaganje odgovorov…' : snapshot.syncing ? 'Shranjujem odgovore…' : snapshot.pendingCount ? 'Spremembe čakajo na shranjevanje…' : 'Odgovori so shranjeni v Supabase.')}</span>
+      <span>{snapshot.error || (snapshot.loading ? 'Nalagam podatke računa…' : snapshot.syncing ? 'Shranjujem spremembe…' : snapshot.pendingCount ? 'Spremembe čakajo na shranjevanje…' : 'Spremembe so shranjene v računu.')}</span>
       {snapshot.error && <button disabled={retrying} onClick={async () => { setRetrying(true); try { await store.retry(); } finally { setRetrying(false); } }}>{retrying ? 'Preverjam…' : 'Poskusi znova'}</button>}
     </div>
     {snapshot.legacyCount > 0 && <div className="legacy-import"><span>V tem brskalniku je {snapshot.legacyCount} odgovorov iz demo različice.</span><button disabled={snapshot.loading || snapshot.importing} onClick={() => { void store.importLegacy(); }}>{snapshot.importing ? 'Uvažam…' : 'Uvozi v moj račun'}</button></div>}
